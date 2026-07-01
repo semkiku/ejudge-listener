@@ -1,15 +1,13 @@
 from typing import NamedTuple, Tuple
 
 import requests
-from bson import ObjectId
 from flask import current_app
 from marshmallow import fields, Schema, post_load
 from requests import RequestException
 from sqlalchemy.orm import joinedload
 
 from ejudge_listener.models import EjudgeRun
-from ejudge_listener.extensions import mongo, db
-from ejudge_listener.protocol.protocol import read_protocol
+from ejudge_listener.extensions import db
 
 REQUEST_TIMEOUT = 10  # seconds
 
@@ -48,13 +46,15 @@ ej_run_schema = EjudgeRunSchema()
 
 def send_non_terminal(request_args: dict) -> None:
     """Send non terminal status run."""
+
+    request_args['judge_id'] = current_app.config['RMATICS_JUDGE_ID']
     r = requests.post(
-        current_app.config['EJUDGE_FRONT_URL'],
+        current_app.config['RMATICS_ALIVE_URL'],
         json=request_args,
         timeout=REQUEST_TIMEOUT,
     )
 
-def load_protocol(request_args: dict) -> Tuple[dict, dict]:
+def load_run_data(request_args: dict) -> dict:
     r, _ = ej_request_schema.load(request_args)
     run = (
         db.session.query(EjudgeRun)
@@ -62,51 +62,13 @@ def load_protocol(request_args: dict) -> Tuple[dict, dict]:
         .options(joinedload(EjudgeRun.problem))
         .one()
     )
-    protocol = read_protocol(run)
     run_data = ej_run_schema.dump(run).data
-    return run_data, protocol
-
-
-def insert_to_mongo(run_data) -> dict:
-    run_data, protocol = run_data
-    mongo_protocol_id = insert_protocol_to_mongo(protocol)
-    run_data['mongo_protocol_id'] = mongo_protocol_id
     return run_data
 
 
 def send_terminal(run_data: dict):
+    run_data['judge_id'] = current_app.config['RMATICS_JUDGE_ID']
     r = requests.post(
-        current_app.config['EJUDGE_FRONT_URL'], json=run_data, timeout=REQUEST_TIMEOUT
+        current_app.config['RMATICS_ALIVE_URL'], json=run_data, timeout=REQUEST_TIMEOUT
     )
     r.raise_for_status()
-
-
-def insert_protocol_to_mongo(protocol: dict) -> str:
-    """
-    Insert EjudgeRun load_protocol to mongo.
-    :param protocol: EjudgeRun load_protocol.
-    :return: hex encoded version of ObjectId.
-    """
-    protocol_id = mongo.db.protocol.insert_one(protocol).inserted_id
-    mongo_protocol_id = str(protocol_id)
-    return mongo_protocol_id
-
-
-def mongo_rollback(data: dict) -> None:
-    mongo_id = data['mongo_protocol_id']
-    mongo.db.protocol.delete_one({'_id': ObjectId(mongo_id)})
-
-
-def is_4xx_code(status_code) -> bool:
-    return 400 <= status_code < 500
-
-
-def is_4xx_error(e: RequestException) -> bool:
-    try:
-        status_code = e.response.status_code
-    except AttributeError:
-        return False
-    else:
-        if is_4xx_code(status_code):
-            return True
-        return False

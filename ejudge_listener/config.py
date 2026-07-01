@@ -48,8 +48,6 @@ class BaseConfig:
     # databases
     URL_ENCODER_ALPHABET = os.getenv('URL_ENCODER_ALPHABET', 'abcdefg')
 
-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://user:pass@localhost/test')
-
     SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI',
                                         'mysql+pymysql://root:@localhost:3306/')
 
@@ -58,29 +56,9 @@ class BaseConfig:
     SQLALCHEMY_POOL_SIZE = 10
     SQLALCHEMY_POOL_RECYCLE = 3600
 
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://@localhost:6379/0')
-
-    # services
-    EJUDGE_MASTER_TOKEN = os.getenv('EJUDGE_MASTER_TOKEN', 'EMPTY_TOKEN')
-    EJUDGE_NEW_CLIENT_URL = os.getenv('EJUDGE_NEW_CLIENT_URL', 'http://localhost/cgi-bin/new-master')
-    EJUDGE_USER = os.getenv('EJUDGE_USER', 'user')
-    EJUDGE_PASSWORD = os.getenv('EJUDGE_PASSWORD', 'pass')
-
-    CENTRIFUGO_URL = os.getenv('CENTRIFUGO_URL', 'http://localhost:1377')
-    CENTRIFUGO_API_KEY = os.getenv('CENTRIFUGO_API_KEY', 'foo')
-
     # Services
-    EJUDGE_FRONT_URL = os.getenv('EJUDGE_FRONT_URL')
-
-    RQ_REDIS_URL = os.getenv('RQ_REDIS_URL', 'redis://')
-    RQ_QUEUES = os.getenv('RQ_QUEUES', ['default'])
-
-    # Protocol
-    CONTEST_PATH = os.getenv('CONTEST_PATH', '/home/judges/contests_var')
-    PROTOCOLS_PATH = os.getenv('PROTOCOLS_PATH', 'archive/xmlreports')
-    AUDIT_PATH = os.getenv('AUDIT_PATH', 'archive/audit')
-    SOURCES_PATH = os.getenv('SOURCES_PATH', 'archive/runs')
-    OUTPUT_PATH = os.getenv('OUTPUT_PATH', 'archive/output')
+    RMATICS_ALIVE_URL = os.getenv('RMATICS_ALIVE_URL')
+    RMATICS_JUDGE_ID = os.getenv('RMATICS_JUDGE_ID')
 
     # Celery requires lowercased config
     broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
