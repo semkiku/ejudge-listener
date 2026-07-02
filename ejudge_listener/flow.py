@@ -59,7 +59,6 @@ def load_run_data(request_args: dict) -> dict:
     run = (
         db.session.query(EjudgeRun)
         .filter_by(contest_id=r.contest_id, run_id=r.run_id)
-        .options(joinedload(EjudgeRun.problem))
         .one()
     )
     run_data = ej_run_schema.dump(run).data

@@ -4,6 +4,7 @@ from requests import RequestException
 from sqlalchemy.orm.exc import NoResultFound
 
 from ejudge_listener import flow
+from ejudge_listener.extensions import db
 
 logger = get_task_logger(__name__)
 
@@ -24,7 +25,7 @@ def send_non_terminal(request_args):
 def load_run_data(self, request_args):
     """ Load Ejudge run from database and load protocol from filesystem for this run.
     """
-    logger.info("laod_protocol t")
+    logger.info("load_run_data t")
     try:
         res = flow.load_run_data(request_args)
 

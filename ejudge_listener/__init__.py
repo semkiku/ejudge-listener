@@ -9,7 +9,6 @@ from ejudge_listener.extensions import celery, mongo
 from ejudge_listener.extensions import db
 from ejudge_listener.views import update_run
 
-
 def create_app(config, config_logger=True):
     # Optional logger setup to prevent overriding
     # child applications own loggers
@@ -23,7 +22,6 @@ def create_app(config, config_logger=True):
     app.logger.info(f'Running with {config} module')
 
     db.init_app(app)
-    mongo.init_app(app)
     configure_celery_app(app, celery)
 
     register_error_handlers(app)
