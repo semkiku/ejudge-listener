@@ -8,19 +8,6 @@ from ejudge_listener.extensions import db
 
 logger = get_task_logger(__name__)
 
-@shared_task(ignore_result=True, retry=False)
-def send_non_terminal(request_args):
-    """Send non terminal status to ejudge front.
-
-    We ignore result and not retry, because we get new status
-    from ejudge earlier, then requeued task starts execute.
-    And we just don't care about non terminal statuses, because
-    main logic around terminal statuses and we can afford to not
-    send or loose some of non terminal statuses to ejudge front.
-    """
-    flow.send_non_terminal(request_args)
-
-
 @shared_task(bind=True, default_retry_delay=30, max_retries=5)
 def load_run_data(self, request_args):
     """ Load Ejudge run from database and load protocol from filesystem for this run.
@@ -37,12 +24,8 @@ def load_run_data(self, request_args):
         self.request.chain = None  # Stop chain
 
 
-@shared_task(bind=True, max_retries=None, retry_backoff=True)
-def send_terminal(self, data):
+@shared_task(ignore_result=True, retry=False)
+def send(self, data):
     """Send Ejudge run data.
     """
-    try:
-        flow.send_terminal(data)
-    except RequestException as exc:
-        logger.exception('Got unexpected error while request to rmatics. Retrying task')
-        self.retry(exc=exc, countdown=2 * self.request.retries)
+    flow.send_terminal(data)
