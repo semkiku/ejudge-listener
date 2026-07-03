@@ -25,7 +25,7 @@ def load_run_data(self, request_args):
 
 
 @shared_task(ignore_result=True, retry=False)
-def send(self, data):
+def send(data):
     """Send Ejudge run data.
     """
-    flow.send_terminal(data)
+    flow.send(data)
