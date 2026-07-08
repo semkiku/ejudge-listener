@@ -60,3 +60,5 @@ def send(run_data: dict):
     r = requests.post(
         current_app.config['RMATICS_ALIVE_URL'], json=run_data, timeout=REQUEST_TIMEOUT
     )
+
+    r.raise_for_status()
