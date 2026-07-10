@@ -1,14 +1,48 @@
 import copy
+import os
+import sys
+import tempfile
 
 import flask_testing
+from unittest.mock import patch
+
+# Локальный запуск без mysql: TEST_INFRA=local переводит тесты на sqlite
+# (схема ejudge цепляется через ATTACH). По умолчанию, как и раньше,
+# используется SQLALCHEMY_DATABASE_URI.
+if os.getenv('TEST_INFRA') == 'local':
+    try:
+        import sqlite3
+    except ImportError:
+        import pysqlite3 as sqlite3
+        sys.modules['sqlite3'] = sqlite3
+        sys.modules['sqlite3.dbapi2'] = sqlite3.dbapi2
+
+    from sqlalchemy import event
+    from sqlalchemy.engine import Engine
+
+    _tmpdir = tempfile.mkdtemp(prefix='ejudge-listener-test-db-')
+
+    @event.listens_for(Engine, 'connect')
+    def _attach_schemas(dbapi_conn, connection_record):
+        if not isinstance(dbapi_conn, sqlite3.Connection):
+            return
+        cursor = dbapi_conn.cursor()
+        cursor.execute('ATTACH DATABASE ? AS ejudge',
+                       (os.path.join(_tmpdir, 'ejudge.db'),))
+        cursor.close()
+
+    from ejudge_listener.config import TestConfig
+    TestConfig.SQLALCHEMY_DATABASE_URI = \
+        'sqlite:///' + os.path.join(_tmpdir, 'main.db')
+    TestConfig.SQLALCHEMY_POOL_SIZE = None
+    TestConfig.SQLALCHEMY_POOL_RECYCLE = None
 
 from ejudge_listener import create_app
 from ejudge_listener.extensions import db
 from ejudge_listener.models import EjudgeRun
-from unittest.mock import patch
 
 REQUEST_ARGS = {'contest_id': 1, 'run_id': 10, 'status': 0}
-MONGO_ID = '507f1f77bcf86cd799439011'
+
 RUN = {
     'run_id': 10,
     'contest_id': 1,
@@ -20,19 +54,6 @@ RUN = {
     'run_uuid': None,
     'test_num': None,
 }
-RUN_WITH_MONGO_ID = {
-    'run_id': 10,
-    'contest_id': 1,
-    'status': None,
-    'lang_id': None,
-    'score': None,
-    'last_change_time': None,
-    'create_time': None,
-    'run_uuid': None,
-    'test_num': None,
-    'mongo_protocol_id': MONGO_ID,
-}
-PROTOCOL = {'tests': 'nice_tests', 'audit': 'nice_audit'}
 
 
 class TestCase(flask_testing.TestCase):
