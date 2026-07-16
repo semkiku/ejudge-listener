@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 # avialable cofig modules
 DEV_CONFIG_MODULE = 'ejudge_listener.config.DevConfig'
@@ -22,6 +23,11 @@ def get_config_from_env() -> str:
     # failback to dev, if `FLASK_ENV` has invalid value
     return CONFIG_ENV_MODULES.get(ENV, DEV_CONFIG_MODULE)
 
+def int_(v: str = None) -> Optional[int]:
+    try:
+        return int(v)
+    except:
+        return None
 
 def bool_(v: str = None) -> bool:
     """Cast bool string representation into actual Bool type
@@ -58,7 +64,7 @@ class BaseConfig:
     
     # Services
     RMATICS_ALIVE_URL = os.getenv('RMATICS_ALIVE_URL')
-    RMATICS_JUDGE_ID = int(os.getenv('RMATICS_JUDGE_ID'))
+    RMATICS_JUDGE_ID = int_(os.getenv('RMATICS_JUDGE_ID'))
 
     # Celery requires lowercased config
     broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')

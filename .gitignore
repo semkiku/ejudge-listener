@@ -40,6 +40,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+testenv/
 
 # deploy-settings
 configs/production.cfg
