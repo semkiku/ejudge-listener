@@ -58,7 +58,7 @@ class BaseConfig:
     
     # Services
     RMATICS_ALIVE_URL = os.getenv('RMATICS_ALIVE_URL')
-    RMATICS_JUDGE_ID = os.getenv('RMATICS_JUDGE_ID')
+    RMATICS_JUDGE_ID = int(os.getenv('RMATICS_JUDGE_ID'))
 
     # Celery requires lowercased config
     broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')

@@ -14,7 +14,7 @@ from tests.unit.base import TestCase
 ej_request_schema = EjudgeRequestSchema()
 
 RMATICS_URL = 'http://rmatics/problem/run/action/update_from_ejudge'
-JUDGE_ID = '2'
+JUDGE_ID = 2
 
 
 class TestLoadRunData(TestCase):
